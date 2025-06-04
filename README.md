@@ -40,4 +40,6 @@ To run:
 uv run main -i ./dataset/armcoda_output/armcoda_subject0_movement10.csv 
 ```
 
-Note: to vizualize Arm-CODA dataset, open `src/ckatool/lib/limb.py` and set `radii` accordingly.
+Note:
+1. To vizualize Arm-CODA dataset, open `src/ckatool/lib/limb.py` and set `radii` accordingly.
+2. In this repository, we attach some sample data for your convenience. They still belong to their respective datasets and are used for testing purposes only.

@@ -28,12 +28,14 @@ from .lib.smoothness import dimensionless_jerk, log_dimensionless_jerk, sampling
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Upper-limb kinematic analysis.")
+    parser = argparse.ArgumentParser(
+        description="Tool for analyzing upper limb movement using 3D motion tracking data."
+    )
     parser.add_argument("-i", "--input", required=True, help="Path to input file")
     rr.script_add_args(parser)
     args = parser.parse_args()
 
-    rr.script_setup(args, "Kinematic Analysis")
+    rr.script_setup(args, "CKATool")
     vs = Visualiser(args.input)
     rr.send_blueprint(vs.default_viewport())
 
@@ -306,7 +308,6 @@ class Visualiser:
                         rrb.TimeSeriesView(name="Speed - Peak Velocity", origin="peak_velocity"),
                     ]
                 ),
-                # rrb.BarChartView(name="Angular Speed Elbow Right (deg/s)", origin="speed/right"),
                 rrb.Horizontal(
                     contents=[
                         rrb.TimeSeriesView(
@@ -319,8 +320,6 @@ class Visualiser:
                             name="Smoothness - Number of Peak Velocity", origin="number_of_velocity_peaks"
                         ),
                         rrb.TimeSeriesView(name="Smoothness - Zero Crossing Acceleration", origin="zero_crossings_bar"),
-                        # rrb.TimeSeriesView(name="Acceleration Profile", origin="acceleration_profile"),
-                        # rrb.TimeSeriesView(name="Zero Crossing Acceleration Tracing", origin="zero_crossings_trace"),
                     ]
                 ),
                 rrb.Horizontal(

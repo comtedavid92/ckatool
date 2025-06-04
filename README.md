@@ -27,17 +27,17 @@ For example dataset Arm-CODA in folder `armcoda`, 3D-ARM-Gaze in folder `3darmga
 To convert a dataset:
 
 ```sh
-uv run python ./src/ckatool/cli/dataset_converter.py --input ./dataset/armcoda --source armcoda 
+uv run python ./src/ckatool/cli/dataset_converter.py --input ./dataset/3darmgaze --source 3darmgaze 
 ```
 
-The result would be available on `path/to/armcoda_output`.
+The result would be available on `path/to/3darmgaze_output`.
 
 ## Running the tool
 
 To run:
 
 ```sh
-uv run main -i ./dataset/armcoda_output/armcoda_subject0_movement10.csv 
+uv run main -i ./dataset/3darmgaze_output/s1_test_RNP_after_targets_pairs.csv
 ```
 
 Note:

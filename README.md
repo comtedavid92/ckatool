@@ -41,5 +41,31 @@ uv run main -i ./dataset/3darmgaze_output/s1_test_RNP_after_targets_pairs.csv
 ```
 
 Note:
-1. To vizualize Arm-CODA dataset, open `src/ckatool/lib/limb.py` and set `radii` accordingly.
+1. To visualize Arm-CODA dataset, open `src/ckatool/lib/limb.py` and set `radii` accordingly.
 2. In this repository, we attach some sample data for your convenience. They still belong to their respective datasets and are used for testing purposes only.
+
+## Citation
+If you find this toolbox useful in your research, please consider citing:
+
+```bibtex
+@article{ckatool2025,
+    title = {CKATool: A clinical kinematic analysis toolbox for upper limb rehabilitation},
+    journal = {Computational and Structural Biotechnology Journal},
+    volume = {28},
+    pages = {330-340},
+    year = {2025},
+    issn = {2001-0370},
+    doi = {https://doi.org/10.1016/j.csbj.2025.08.018}
+}
+```
+
+## Visualization Example
+See the following example to get an overview of the CKATool visualization.
+
+![IntelliRehab helathy example](./docs/intellirehab_healthy.png)
+
+![IntelliRehab patient example](./docs/intellirehab_patient.png)
+
+![3D-ARM-Gaze example](./docs/3darmgaze.png)
+
+![Arm-CODA example](./docs/armcoda.png)

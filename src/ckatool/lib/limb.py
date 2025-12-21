@@ -4,10 +4,16 @@ from math import isnan
 
 import numpy as np
 import polars as pl
-import rerun as rr
 from scipy.signal import argrelextrema, butter, filtfilt, find_peaks
 
 from .smoothness import log_dimensionless_jerk, sampling_frequency_from_timestamp, sparc
+
+try: import rerun as rr
+except ImportError: rr = None
+
+def _rr(): 
+    if rr is None: raise RuntimeError("Rerun is not installed: visualisation is unavailable.")
+    return rr
 
 
 class Object:
@@ -32,22 +38,22 @@ class Object:
 
 class Neck(Object):
     def visualise_3d_data(self):
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/{self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
+                *_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
             ],
         )
 
 
 class Hip(Object):
     def visualise_3d_data(self):
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/{self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
+                *_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
             ],
         )
 
@@ -94,21 +100,21 @@ class Shoulder(Object):
             neck.xyz_coordinates.to_numpy(),
             hip.xyz_coordinates.to_numpy(),
         )
-        rr.send_columns(
+        _rr().send_columns(
             f"angle/{self.side}\ {self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Scalars.columns(scalars=angle),
+                *_rr().archetypes.Scalars.columns(scalars=angle),
             ],
         )
 
         # speed profile
         speed_profile = calculate_speed_profile(angle.reshape(-1, 1), self.df["timestamp"].to_numpy())
-        rr.send_columns(
+        _rr().send_columns(
             f"speed_profile_angular/{self.side}\ {self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Scalars.columns(scalars=speed_profile),
+                *_rr().archetypes.Scalars.columns(scalars=speed_profile),
             ],
         )
 
@@ -116,10 +122,10 @@ class Shoulder(Object):
         self.df.insert_column(-1, pl.Series("angle", angle))
 
     def visualise_3d_data(self, neck: Neck | None, hip: Hip | None):
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/{self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
-            columns=[*rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii)],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            columns=[*_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii)],
         )
 
         # draw lines to neck and hip if they exist
@@ -131,10 +137,10 @@ class Shoulder(Object):
     def _draw_line(self, entity_path: str, shoulder: pl.DataFrame, other_limb: pl.DataFrame):
         color = [0x00000000] * self.df.height
         line = np.hstack((shoulder, other_limb)).reshape((self.df.height, 2, 3))
-        rr.send_columns(
+        _rr().send_columns(
             entity_path,
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
-            columns=[*rr.archetypes.LineStrips3D.columns(strips=line, colors=color, radii=self.line_radii)],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            columns=[*_rr().archetypes.LineStrips3D.columns(strips=line, colors=color, radii=self.line_radii)],
         )
 
     def _compute_angles(
@@ -233,10 +239,10 @@ class Elbow(Object):
         return self.df["angle"].to_numpy() if "angle" in self.df.columns else [0]
 
     def visualise_3d_data(self, shoulder: Shoulder | None):
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/{self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
-            columns=[*rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii)],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            columns=[*_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii)],
         )
 
         # draw lines to shoulder
@@ -248,10 +254,10 @@ class Elbow(Object):
     def _draw_line(self, entity_path: str, elbow: pl.DataFrame, shoulder: pl.DataFrame):
         color = [0xAAAAAAAA] * self.df.height
         line = np.hstack((elbow, shoulder)).reshape((self.df.height, 2, 3))
-        rr.send_columns(
+        _rr().send_columns(
             entity_path,
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
-            columns=[*rr.archetypes.LineStrips3D.columns(strips=line, colors=color, radii=self.line_radii)],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            columns=[*_rr().archetypes.LineStrips3D.columns(strips=line, colors=color, radii=self.line_radii)],
         )
 
     def visualise_speed_profile(self, wrist: Wrist | None, shoulder: Shoulder | None):
@@ -267,21 +273,21 @@ class Elbow(Object):
         angle = self._compute_angles(
             wrist.xyz_coordinates.to_numpy(), self.xyz_coordinates.to_numpy(), shoulder.xyz_coordinates.to_numpy()
         )
-        rr.send_columns(
+        _rr().send_columns(
             f"angle/{self.side}\ {self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Scalars.columns(scalars=angle),
+                *_rr().archetypes.Scalars.columns(scalars=angle),
             ],
         )
 
         # speed profile
         speed_profile = calculate_speed_profile(angle.reshape(-1, 1), self.df["timestamp"].to_numpy())
-        rr.send_columns(
+        _rr().send_columns(
             f"speed_profile_angular/{self.side}\ {self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Scalars.columns(scalars=speed_profile),
+                *_rr().archetypes.Scalars.columns(scalars=speed_profile),
             ],
         )
 
@@ -351,10 +357,10 @@ class Wrist(Object):
 
     def visualise_3d_data(self, elbow: Elbow | None):
         # draw 3D points
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/{self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
-            columns=[*rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii)],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            columns=[*_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii)],
         )
 
         # draw lines to elbow
@@ -368,16 +374,16 @@ class Wrist(Object):
         # create connections between consecutive rows
         wrist_positions = self.xyz_coordinates.to_numpy()
         connections = np.hstack((wrist_positions[:-1], wrist_positions[1:])).reshape(-1, 2, 3)
-        rr.log(
+        _rr().log(
             f"trajectory/{self.side}/{self.object_name}_static",
-            rr.LineStrips3D(strips=connections, colors=trajectory_color, radii=self.line_radii / 2),
+            _rr().LineStrips3D(strips=connections, colors=trajectory_color, radii=self.line_radii / 2),
             static=True,
         )
-        rr.send_columns(
+        _rr().send_columns(
             f"trajectory/{self.side}/{self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Points3D.columns(
+                *_rr().archetypes.Points3D.columns(
                     positions=self.xyz_coordinates, radii=self.line_radii * 2, colors=position_color
                 )
             ],
@@ -386,10 +392,10 @@ class Wrist(Object):
     def _draw_line(self, entity_path: str, wrist: pl.DataFrame, elbow: pl.DataFrame):
         color = [0xAAAAAAAA] * self.df.height
         line = np.hstack((wrist, elbow)).reshape((self.df.height, 2, 3))
-        rr.send_columns(
+        _rr().send_columns(
             entity_path,
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
-            columns=[*rr.archetypes.LineStrips3D.columns(strips=line, colors=color, radii=self.line_radii)],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            columns=[*_rr().archetypes.LineStrips3D.columns(strips=line, colors=color, radii=self.line_radii)],
         )
 
     def visualise_speed_profile(self):
@@ -399,11 +405,11 @@ class Wrist(Object):
         """
         speed_profile = calculate_speed_profile(self.xyz_coordinates.to_numpy(), self.df["timestamp"].to_numpy())
         self.df.insert_column(-1, pl.Series("speed_profile", speed_profile))
-        rr.send_columns(
+        _rr().send_columns(
             f"speed_profile_linear/{self.side}\ {self.object_name}",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Scalars.columns(scalars=self.df["speed_profile"]),
+                *_rr().archetypes.Scalars.columns(scalars=self.df["speed_profile"]),
             ],
         )
 
@@ -458,11 +464,11 @@ def _visualise_acceleration_profile(cls):
 
     acceleration = calculate_acceleration_profile(cls.df["speed_profile"].to_numpy(), cls.df["timestamp"].to_numpy())
     cls.df.insert_column(-1, pl.Series("acceleration_profile", acceleration))
-    rr.send_columns(
+    _rr().send_columns(
         f"acceleration_profile/{cls.side}\ {cls.object_name}\ (linear)",
-        indexes=[rr.TimeColumn("record_time", timestamp=cls.df["timestamp"])],
+        indexes=[_rr().TimeColumn("record_time", timestamp=cls.df["timestamp"])],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=acceleration),
+            *_rr().archetypes.Scalars.columns(scalars=acceleration),
         ],
     )
 
@@ -489,11 +495,11 @@ def _visualise_zero_crossings_trace(cls):
         cls.df["acceleration_profile"].to_numpy(), cls.df["iteration"].to_numpy()
     )
     cls.df.insert_column(-1, pl.Series("zero_crossing_counter_trace", counter_trace))
-    rr.send_columns(
+    _rr().send_columns(
         f"zero_crossings_trace/{cls.side}\ {cls.object_name}\ (linear)",
-        indexes=[rr.TimeColumn("record_time", timestamp=cls.df["timestamp"])],
+        indexes=[_rr().TimeColumn("record_time", timestamp=cls.df["timestamp"])],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=counter_trace),
+            *_rr().archetypes.Scalars.columns(scalars=counter_trace),
         ],
     )
 
@@ -596,11 +602,11 @@ def _calculate_percentage_time_to_peak_velocity(cls):
 
 class Target(Object):
     def visualise_3d_data(self):
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/target",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
+                *_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
             ],
         )
 
@@ -612,11 +618,11 @@ class EndEffector(Object):
         self.hand_path_ratio = {}
 
     def visualise_3d_data(self):
-        rr.send_columns(
+        _rr().send_columns(
             f"3d/points/end_effector",
-            indexes=[rr.TimeColumn("record_time", timestamp=self.df["timestamp"])],
+            indexes=[_rr().TimeColumn("record_time", timestamp=self.df["timestamp"])],
             columns=[
-                *rr.archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
+                *_rr().archetypes.Points3D.columns(positions=self.xyz_coordinates, radii=self.point_radii),
             ],
         )
 
@@ -819,12 +825,12 @@ def visualise_max_speed_angular(
     )
     # max_speed = np.nanmax(right_wrist)
     iteration_scalars_speeds_angular = [0 if rep is None else max_speed_angular for rep in iterations]
-    rr.send_columns(
+    _rr().send_columns(
         f"speed_profile_angular/iteration",
-        indexes=[rr.TimeColumn("record_time", timestamp=timestamp)],
+        indexes=[_rr().TimeColumn("record_time", timestamp=timestamp)],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=iteration_scalars_speeds_angular),
-            *rr.archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
+            *_rr().archetypes.Scalars.columns(scalars=iteration_scalars_speeds_angular),
+            *_rr().archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
         ],
     )
 
@@ -1129,12 +1135,12 @@ def visualise_speed_profile_iteration(
 
     max_speed_linear = max(np.nanmax(speed_profile_a), np.nanmax(speed_profile_b))
     iteration_scalars_speeds_linear = [0 if rep is None else max_speed_linear for rep in iterations]
-    rr.send_columns(
+    _rr().send_columns(
         f"speed_profile_linear/iteration",
-        indexes=[rr.TimeColumn("record_time", timestamp=timestamp)],
+        indexes=[_rr().TimeColumn("record_time", timestamp=timestamp)],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=iteration_scalars_speeds_linear),
-            *rr.archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
+            *_rr().archetypes.Scalars.columns(scalars=iteration_scalars_speeds_linear),
+            *_rr().archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
         ],
     )
 
@@ -1161,12 +1167,12 @@ def visualise_max_angle(
         np.nanmax(left_elbow_angle),
     )
     iteration_scalars_angle = [0 if rep is None else max_angle for rep in iterations]
-    rr.send_columns(
+    _rr().send_columns(
         f"angle/iteration",
-        indexes=[rr.TimeColumn("record_time", timestamp=timestamp)],
+        indexes=[_rr().TimeColumn("record_time", timestamp=timestamp)],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=iteration_scalars_angle),
-            *rr.archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
+            *_rr().archetypes.Scalars.columns(scalars=iteration_scalars_angle),
+            *_rr().archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
         ],
     )
 
@@ -1196,12 +1202,12 @@ def visualise_max_acceleration(
         np.nanmax(left_elbow_acc),
     )
     iteration_scalars_angle = [0 if rep is None else max_acceleration for rep in iterations]
-    rr.send_columns(
+    _rr().send_columns(
         f"acceleration_profile/iteration",
-        indexes=[rr.TimeColumn("record_time", timestamp=timestamp)],
+        indexes=[_rr().TimeColumn("record_time", timestamp=timestamp)],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=iteration_scalars_angle),
-            *rr.archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
+            *_rr().archetypes.Scalars.columns(scalars=iteration_scalars_angle),
+            *_rr().archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
         ],
     )
 
@@ -1243,12 +1249,12 @@ def visualise_max_zero_crossings(
         np.nanmax(np.array(list(zero_cross_left_elbow))),
     )
     iteration_scalars_crossing = [0 if rep is None else max_crossing for rep in iterations]
-    rr.send_columns(
+    _rr().send_columns(
         f"zero_crossings_trace/iteration",
-        indexes=[rr.TimeColumn("record_time", timestamp=timestamp)],
+        indexes=[_rr().TimeColumn("record_time", timestamp=timestamp)],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=iteration_scalars_crossing),
-            *rr.archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
+            *_rr().archetypes.Scalars.columns(scalars=iteration_scalars_crossing),
+            *_rr().archetypes.SeriesLines.columns(colors=[0x00FFFFFF] * len(timestamp), widths=[2] * len(timestamp)),
         ],
     )
 
@@ -1262,11 +1268,11 @@ def visualise_barchart_per_iteration(
     name: str,
 ):
     iteration_scalars_crossing = [data.get(rep, 0) if rep else 0 for rep in iterations]
-    rr.send_columns(
+    _rr().send_columns(
         f"{origin_prefix}/{side}\ {name}",
-        indexes=[rr.TimeColumn("record_time", timestamp=timestamp)],
+        indexes=[_rr().TimeColumn("record_time", timestamp=timestamp)],
         columns=[
-            *rr.archetypes.Scalars.columns(scalars=iteration_scalars_crossing),
-            *rr.archetypes.SeriesLines.columns(widths=[2] * len(timestamp)),
+            *_rr().archetypes.Scalars.columns(scalars=iteration_scalars_crossing),
+            *_rr().archetypes.SeriesLines.columns(widths=[2] * len(timestamp)),
         ],
     )

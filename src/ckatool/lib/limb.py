@@ -875,7 +875,7 @@ def calculate_sparc_per_iteration(ts: np.ndarray, speeds: np.ndarray, iterations
 def calculate_jerk_per_iteration(
     ts: np.ndarray, x: np.ndarray, y: np.ndarray, z: np.ndarray, iterations: np.ndarray
 ) -> dict:
-    data = pl.DataFrame({"timestamp": ts, "iteration": iterations})
+    data = pl.DataFrame({"timestamp": ts, "x": x, "y": y, "z": z, "iteration": iterations})
 
     data = data.filter(pl.col("iteration").is_not_nan())
 
@@ -885,9 +885,9 @@ def calculate_jerk_per_iteration(
         dt = np.mean(np.diff(df["timestamp"]))
 
         # Compute third derivatives (jerk) for each axis
-        jerk_x = np.gradient(np.gradient(np.gradient(x, dt), dt), dt)
-        jerk_y = np.gradient(np.gradient(np.gradient(y, dt), dt), dt)
-        jerk_z = np.gradient(np.gradient(np.gradient(z, dt), dt), dt)
+        jerk_x = np.gradient(np.gradient(np.gradient(df["x"], dt), dt), dt)
+        jerk_y = np.gradient(np.gradient(np.gradient(df["y"], dt), dt), dt)
+        jerk_z = np.gradient(np.gradient(np.gradient(df["z"], dt), dt), dt)
 
         # Magnitude of jerk vector
         jerk_mag_squared = jerk_x**2 + jerk_y**2 + jerk_z**2
@@ -895,13 +895,14 @@ def calculate_jerk_per_iteration(
 
         # Duration and path length
         movement_time = df["timestamp"][-1] - df["timestamp"][0]
-        diffs = np.diff(np.vstack((x, y, z)), axis=1)
+        diffs = np.diff(np.vstack((df["x"], df["y"], df["z"])), axis=1)
         segment_lengths = np.linalg.norm(diffs, axis=0)
         path_length = np.sum(segment_lengths)
 
         # Handle zero division cases
         if movement_time == 0 or path_length == 0:
             result[df["iteration"][0]] = 0
+            continue
 
         dimensionless_jerk_value = jerk_integral * movement_time**5 / (path_length**2)
         log_dimensionless_jerk_value = -np.log(dimensionless_jerk_value)

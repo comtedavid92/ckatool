@@ -1,11 +1,8 @@
 import argparse
-from math import isnan
 
-import numpy as np
 import polars as pl
 import rerun as rr
 import rerun.blueprint as rrb
-from scipy.signal import butter, filtfilt
 
 from .lib.limb import (
     Elbow,
@@ -24,7 +21,6 @@ from .lib.limb import (
     visualise_max_zero_crossings,
     visualise_speed_profile_iteration,
 )
-from .lib.smoothness import dimensionless_jerk, log_dimensionless_jerk, sampling_frequency_from_timestamp, sparc
 
 
 def main() -> int:

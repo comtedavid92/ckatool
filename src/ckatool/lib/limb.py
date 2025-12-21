@@ -4,12 +4,13 @@ from math import isnan
 
 import numpy as np
 import polars as pl
-from scipy.signal import argrelextrema, butter, filtfilt, find_peaks
+from scipy.signal import argrelextrema, butter, filtfilt
 
-from .smoothness import log_dimensionless_jerk, sampling_frequency_from_timestamp, sparc
+from .smoothness import sampling_frequency_from_timestamp, sparc
 
 try: import rerun as rr
 except ImportError: rr = None
+
 
 def _rr(): 
     if rr is None: raise RuntimeError("Rerun is not installed: visualisation is unavailable.")

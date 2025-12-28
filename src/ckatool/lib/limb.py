@@ -121,6 +121,25 @@ class Shoulder(Object):
 
         self.df.insert_column(-1, pl.Series("speed_profile", speed_profile))
         self.df.insert_column(-1, pl.Series("angle", angle))
+        
+    def calculate_speed_profile(self, elbow: Elbow | None, neck: Neck | None, hip: Hip | None):
+        if elbow is None or neck is None or hip is None:
+            print(f"Cannot calculate speed profile for {self.side} shoulder, missing required limbs.")
+            return
+
+        # shoulder angle
+        angle = self._compute_angles(
+            elbow.xyz_coordinates.to_numpy(),
+            self.xyz_coordinates.to_numpy(),
+            neck.xyz_coordinates.to_numpy(),
+            hip.xyz_coordinates.to_numpy(),
+        )
+        
+        # speed profile
+        speed_profile = calculate_speed_profile(angle.reshape(-1, 1), self.df["timestamp"].to_numpy())
+
+        self.df.insert_column(-1, pl.Series("speed_profile", speed_profile))
+        self.df.insert_column(-1, pl.Series("angle", angle))
 
     def visualise_3d_data(self, neck: Neck | None, hip: Hip | None):
         _rr().send_columns(
@@ -183,10 +202,17 @@ class Shoulder(Object):
 
     def visualise_acceleration_profile(self):
         _visualise_acceleration_profile(self)
+        
+    def calculate_acceleration_profile(self):
+        _calculate_acceleration_profile(self)
 
     def visualise_zero_crossings(self):
         _calculate_zero_crossings(self)
         _visualise_zero_crossings_trace(self)
+        
+    def calculate_zero_crossings(self):
+        _calculate_zero_crossings(self)
+        _calculate_zero_crossings_trace(self)
 
     def count_number_of_velocity_peaks(self):
         _count_velocity_peaks(self)
@@ -294,6 +320,22 @@ class Elbow(Object):
 
         self.df.insert_column(-1, pl.Series("speed_profile", speed_profile))
         self.df.insert_column(-1, pl.Series("angle", angle))
+        
+    def calculate_speed_profile(self, wrist: Wrist | None, shoulder: Shoulder | None):
+        if wrist is None or shoulder is None:
+            print(f"Cannot calculate speed profile for {self.side} {self.object_name}, missing required limbs.")
+            return
+
+        # elbow angle
+        angle = self._compute_angles(
+            wrist.xyz_coordinates.to_numpy(), self.xyz_coordinates.to_numpy(), shoulder.xyz_coordinates.to_numpy()
+        )
+        
+        # speed profile
+        speed_profile = calculate_speed_profile(angle.reshape(-1, 1), self.df["timestamp"].to_numpy())
+        
+        self.df.insert_column(-1, pl.Series("speed_profile", speed_profile))
+        self.df.insert_column(-1, pl.Series("angle", angle))
 
     def _compute_angles(
         self,
@@ -312,10 +354,17 @@ class Elbow(Object):
 
     def visualise_acceleration_profile(self):
         _visualise_acceleration_profile(self)
+        
+    def calculate_acceleration_profile(self):
+        _calculate_acceleration_profile(self)
 
     def visualise_zero_crossings(self):
         _calculate_zero_crossings(self)
         _visualise_zero_crossings_trace(self)
+        
+    def calculate_zero_crossings(self):
+        _calculate_zero_crossings(self)
+        _calculate_zero_crossings_trace(self)
 
     def count_number_of_velocity_peaks(self):
         _count_velocity_peaks(self)
@@ -413,13 +462,24 @@ class Wrist(Object):
                 *_rr().archetypes.Scalars.columns(scalars=self.df["speed_profile"]),
             ],
         )
+        
+    def calculate_speed_profile(self):
+        speed_profile = calculate_speed_profile(self.xyz_coordinates.to_numpy(), self.df["timestamp"].to_numpy())
+        self.df.insert_column(-1, pl.Series("speed_profile", speed_profile))
 
     def visualise_acceleration_profile(self):
         _visualise_acceleration_profile(self)
+        
+    def calculate_acceleration_profile(self):
+        _calculate_acceleration_profile(self)
 
     def visualise_zero_crossings(self):
         _calculate_zero_crossings(self)
         _visualise_zero_crossings_trace(self)
+        
+    def calculate_zero_crossings(self):
+        _calculate_zero_crossings(self)
+        _calculate_zero_crossings_trace(self)
 
     def count_number_of_velocity_peaks(self):
         _count_velocity_peaks(self)
@@ -472,6 +532,15 @@ def _visualise_acceleration_profile(cls):
             *_rr().archetypes.Scalars.columns(scalars=acceleration),
         ],
     )
+    
+ 
+def _calculate_acceleration_profile(cls):
+    if "speed_profile" not in cls.df.columns:
+        print(f"Cannot calculate acceleration profile for {cls.side} {cls.object_name}, speed profile is missing.")
+        return
+
+    acceleration = calculate_acceleration_profile(cls.df["speed_profile"].to_numpy(), cls.df["timestamp"].to_numpy())
+    cls.df.insert_column(-1, pl.Series("acceleration_profile", acceleration))
 
 
 def _calculate_zero_crossings(cls):
@@ -503,6 +572,19 @@ def _visualise_zero_crossings_trace(cls):
             *_rr().archetypes.Scalars.columns(scalars=counter_trace),
         ],
     )
+    
+    
+def _calculate_zero_crossings_trace(cls):
+    if "acceleration_profile" not in cls.df.columns:
+        print(
+            f"Cannot calculate zero crossings trace for {cls.side} {cls.object_name}, acceleration profile is missing."
+        )
+        return
+
+    counter_trace = zero_crossing_counter_trace(
+        cls.df["acceleration_profile"].to_numpy(), cls.df["iteration"].to_numpy()
+    )
+    cls.df.insert_column(-1, pl.Series("zero_crossing_counter_trace", counter_trace))
 
 
 def _count_velocity_peaks(cls):

@@ -79,6 +79,16 @@ class Visualiser:
                 iteration,
                 "right",
             )
+        right_shoulder = None
+        if "shoulder_x" in self._df.columns:
+            right_shoulder = Shoulder(
+                ts,
+                self._df["shoulder_x"],
+                self._df["shoulder_y"],
+                self._df["shoulder_z"],
+                iteration,
+                "right",
+            )
         left_elbow = None
         if "left_elbow_x" in self._df.columns:
             left_elbow = Elbow(
@@ -89,6 +99,11 @@ class Visualiser:
             right_elbow = Elbow(
                 ts, self._df["right_elbow_x"], self._df["right_elbow_y"], self._df["right_elbow_z"], iteration, "right"
             )
+        right_elbow = None
+        if "elbow_x" in self._df.columns:
+            right_elbow = Elbow(
+                ts, self._df["elbow_x"], self._df["elbow_y"], self._df["elbow_z"], iteration, "right"
+            )
         left_wrist = None
         if "left_wrist_x" in self._df.columns:
             left_wrist = Wrist(
@@ -98,6 +113,11 @@ class Visualiser:
         if "right_wrist_x" in self._df.columns:
             right_wrist = Wrist(
                 ts, self._df["right_wrist_x"], self._df["right_wrist_y"], self._df["right_wrist_z"], iteration, "right"
+            )
+        right_wrist = None
+        if "wrist_x" in self._df.columns:
+            right_wrist = Wrist(
+                ts, self._df["wrist_x"], self._df["wrist_y"], self._df["wrist_z"], iteration, "right"
             )
 
         # if there is target points data and endeffector

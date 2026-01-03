@@ -47,6 +47,45 @@ class Neck(Object):
             ],
         )
 
+    @property
+    def trunk_angle(self) -> np.ndarray:
+        return self.df["trunk_angle"].to_numpy() if "trunk_angle" in self.df.columns else [0]
+
+    def calculate_trunk_angle(self, hip, reference):
+        if hip is None or reference is None:
+            print(f"Cannot calculate trunk angle, missing required parameters.")
+            return
+        
+        reference = np.array(reference, dtype=float) # Reference vector
+        
+        angle = self._compute_trunk_angles(
+            self.xyz_coordinates.to_numpy(),
+            hip.xyz_coordinates.to_numpy(),
+            reference
+        )
+        
+        self.df.insert_column(-1, pl.Series("trunk_angle", angle))
+        
+    def _compute_trunk_angles(
+        self,
+        neck: np.ndarray,
+        hip: np.ndarray,
+        reference: np.ndarray
+    ) -> np.ndarray:
+        """
+        Compute the trunk angle formed by vectors BA (hip to neck) and BC (hip to hip + reference)
+        """
+        num_frames = neck.shape[0]
+        angles = np.zeros(num_frames, dtype=float)
+
+        for i in range(num_frames):
+            a = neck[i]
+            b = hip[i]
+            c = hip[i] + reference
+            angles[i] = calculate_angle(a, b, c)
+
+        return angles
+
 
 class Hip(Object):
     def visualise_3d_data(self):

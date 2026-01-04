@@ -11,7 +11,10 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 ## Installation
 
 - Download this repository
-- Install it with: ```sh pip install -e . ```
+- Install it with:
+```sh
+pip install -e .
+```
 
 ## Offline usage example
 

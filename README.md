@@ -129,6 +129,10 @@ trunk_rom = numpy.nanmax(neck.trunk_angle) - numpy.nanmin(neck.trunk_angle)
 shoulder_rom = numpy.nanmax(shoulder.angle) - numpy.nanmin(shoulder.angle)
 elbow_rom = numpy.nanmax(elbow.angle) - numpy.nanmin(elbow.angle)
 
+trunk_displacement = numpy.absolute(neck.trunk_angle[-1] - neck.trunk_angle[0])
+shoulder_displacement = numpy.absolute(shoulder.angle[-1] - shoulder.angle[0])
+elbow_displacement = numpy.absolute(elbow.angle[-1] - elbow.angle[0])
+
 target_error_distance = end_effector.target_error_distance[iteration_number]
 hand_path_ratio = end_effector.hand_path_ratio[iteration_number]
 ```

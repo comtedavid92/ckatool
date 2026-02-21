@@ -4,9 +4,9 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 
 ## Changes in this fork
 
-- Make Rerun an optional dependency, allowing the tool to be used as a library for offline computation of kinematics
-- Modify the jerk computation by computing derivatives per iteration
+- Make Rerun an optional dependency
 - Add the trunk angle computation to the neck object
+- Modify the jerk computation by computing derivatives per iteration
 
 ## Installation
 

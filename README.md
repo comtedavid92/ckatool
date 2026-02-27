@@ -90,7 +90,7 @@ wrist.calculate_percentage_time_to_peak_velocity()
 end_effector.calculate_target_error_distance(target)
 end_effector.calculate_hand_path_ratio(target)
 
-# Get the kinematics for one iteration
+# Get the per iteration kinematics
 iteration_number = ...
 
 shoulder_number_of_velocity_peaks = shoulder.number_of_velocity_peaks[iteration_number]
@@ -125,6 +125,10 @@ shoulder_percentage_time_to_peak_velocity = shoulder.percentage_time_to_peak_vel
 elbow_percentage_time_to_peak_velocity = elbow.percentage_time_to_peak_velocity[iteration_number]
 wrist_percentage_time_to_peak_velocity = wrist.percentage_time_to_peak_velocity[iteration_number]
 
+target_error_distance = end_effector.target_error_distance[iteration_number]
+hand_path_ratio = end_effector.hand_path_ratio[iteration_number]
+
+# Get the global kinematics
 trunk_rom = numpy.nanmax(neck.trunk_angle) - numpy.nanmin(neck.trunk_angle)
 shoulder_rom = numpy.nanmax(shoulder.angle) - numpy.nanmin(shoulder.angle)
 elbow_rom = numpy.nanmax(elbow.angle) - numpy.nanmin(elbow.angle)
@@ -132,7 +136,4 @@ elbow_rom = numpy.nanmax(elbow.angle) - numpy.nanmin(elbow.angle)
 trunk_displacement = numpy.absolute(neck.trunk_angle[-1] - neck.trunk_angle[0])
 shoulder_displacement = numpy.absolute(shoulder.angle[-1] - shoulder.angle[0])
 elbow_displacement = numpy.absolute(elbow.angle[-1] - elbow.angle[0])
-
-target_error_distance = end_effector.target_error_distance[iteration_number]
-hand_path_ratio = end_effector.hand_path_ratio[iteration_number]
 ```

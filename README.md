@@ -16,7 +16,7 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 pip install -e .
 ```
 
-## Offline usage example
+## Usage example
 
 ```python
 import numpy

@@ -6,7 +6,6 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 
 - Make Rerun an optional dependency
 - Add the trunk angle computation to the neck object
-- Modify the jerk computation by computing derivatives per iteration
 
 ## Installation
 

@@ -4,9 +4,9 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 
 ## Changes in this fork
 
-- Make Rerun an optional dependency
+- Make Rerun an optional dependency when using CKATool as a library
 - Add the trunk angle computation to the neck object
-- Add a custom dataset from my own MediaPipe recordings
+- Add a custom dataset from MediaPipe recordings
 
 ## Run a custom recording
 
@@ -141,3 +141,7 @@ trunk_displacement = numpy.absolute(neck.trunk_angle[-1] - neck.trunk_angle[0])
 shoulder_displacement = numpy.absolute(shoulder.angle[-1] - shoulder.angle[0])
 elbow_displacement = numpy.absolute(elbow.angle[-1] - elbow.angle[0])
 ```
+
+## Disclaimer
+
+I am the only participant, the data in the custom dataset folder is mine. No data from other participants were collected, and so no personal data protection issues are involved.

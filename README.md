@@ -6,8 +6,13 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 
 - Make Rerun an optional dependency
 - Add the trunk angle computation to the neck object
+- Add a custom dataset from my own MediaPipe recordings
 
-## Installation
+## Run a custom recording
+
+uv run main -i .\dataset\custom\test01.csv
+
+## Install as a library
 
 - Download this repository
 - Install it with:
@@ -15,7 +20,7 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 pip install -e .
 ```
 
-## Usage example
+## Use as a library
 
 ```python
 import numpy

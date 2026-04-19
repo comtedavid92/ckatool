@@ -10,13 +10,15 @@ This repository is a fork of the original CKATool: https://github.com/khaira/cka
 
 ## Run a custom recording
 
+```bash
 uv run main -i .\dataset\custom\test01.csv
+```
 
 ## Install as a library
 
 - Download this repository
 - Install it with:
-```sh
+```bash
 pip install -e .
 ```
 
@@ -144,4 +146,4 @@ elbow_displacement = numpy.absolute(elbow.angle[-1] - elbow.angle[0])
 
 ## Disclaimer
 
-I am the only participant, the data in the custom dataset folder is mine. No data from other participants were collected, and so no personal data protection issues are involved.
+All data in the custom dataset folder is mine, and therefore do not raise any personal data protection issues.

@@ -146,4 +146,4 @@ elbow_displacement = numpy.absolute(elbow.angle[-1] - elbow.angle[0])
 
 ## Disclaimer
 
-All data in the custom dataset folder is mine, and therefore do not raise any personal data protection issues.
+All data in the custom dataset folder are mine, and therefore do not raise any personal data protection issues.
